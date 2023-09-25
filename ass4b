@@ -1,0 +1,135 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Function to find the index of the page that will not be used for the longest time (OPT)
+int findOptimalPage(int pages[], int n, int refString[], int refStringLength, int currentIndex) {
+    int farthestIndex = -1;
+    int farthestPage = -1;
+
+    for (int i = 0; i < n; i++) {
+        int page = pages[i];
+        int found = 0;
+
+        for (int j = currentIndex; j < refStringLength; j++) {
+            if (refString[j] == page) {
+                found = 1;
+                if (j > farthestIndex) {
+                    farthestIndex = j;
+                    farthestPage = i;
+                }
+                break;
+            }
+        }
+
+        if (!found) {
+            return i;
+        }
+    }
+    return farthestPage;
+}
+
+// Function to find the page with the maximum frequency (MFU)
+int findMostFrequentPage(int pages[], int n, int refString[], int refStringLength) {
+    int pageFrequency[n];
+    for (int i = 0; i < n; i++) {
+        pageFrequency[i] = 0;
+    }
+
+    for (int i = 0; i < n; i++) {
+        int page = pages[i];
+        for (int j = 0; j < refStringLength; j++) {
+            if (refString[j] == page) {
+                pageFrequency[i]++;
+            }
+        }
+    }
+
+    int maxFrequency = pageFrequency[0];
+    int mfuPage = 0;
+
+    for (int i = 1; i < n; i++) {
+        if (pageFrequency[i] > maxFrequency) {
+            maxFrequency = pageFrequency[i];
+            mfuPage = i;
+        }
+    }
+
+    return mfuPage;
+}
+
+// Function to implement OPT (Optimal) page replacement algorithm
+int optPageReplacement(int refString[], int refStringLength, int n) {
+    int pages[n];
+    int pageFaults = 0;
+
+    for (int i = 0; i < n; i++) {
+        pages[i] = -1;
+    }
+
+    for (int i = 0; i < refStringLength; i++) {
+        int page = refString[i];
+        int found = 0;
+
+        for (int j = 0; j < n; j++) {
+            if (pages[j] == page) {
+                found = 1;
+                break;
+            }
+        }
+
+        if (!found) {
+            pageFaults++;
+            int pageToReplace = findOptimalPage(pages, n, refString, refStringLength, i + 1);
+            pages[pageToReplace] = page;
+        }
+    }
+
+    return pageFaults;
+}
+
+// Function to implement MFU (Most Frequently Used) page replacement algorithm
+int mfuPageReplacement(int refString[], int refStringLength, int n) {
+    int pages[n];
+    int pageFaults = 0;
+
+    for (int i = 0; i < n; i++) {
+        pages[i] = -1;
+    }
+
+    for (int i = 0; i < refStringLength; i++) {
+        int page = refString[i];
+        int found = 0;
+
+        for (int j = 0; j < n; j++) {
+            if (pages[j] == page) {
+                found = 1;
+                break;
+            }
+        }
+
+        if (!found) {
+            pageFaults++;
+            int pageToReplace = findMostFrequentPage(pages, n, refString, refStringLength);
+            pages[pageToReplace] = page;
+        }
+    }
+
+    return pageFaults;
+}
+
+int main() {
+    int refString[] = {12, 15, 12, 18, 6, 8, 11, 12, 19, 12, 6, 8, 12, 15, 19, 8};
+    int refStringLength = sizeof(refString) / sizeof(refString[0]);
+    int n;
+
+    printf("Enter the number of memory frames: ");
+    scanf("%d", &n);
+
+    int optFaults = optPageReplacement(refString, refStringLength, n);
+    int mfuFaults = mfuPageReplacement(refString, refStringLength, n);
+
+    printf("Total Page Faults (OPT): %d\n", optFaults);
+    printf("Total Page Faults (MFU): %d\n", mfuFaults);
+
+    return 0;
+}
