@@ -1,0 +1,153 @@
+ass4
+set c
+
+#include <stdio.h>
+#include <stdlib.h>
+
+// Function to find the index of the most recently used page (MRU)
+int findMostRecentlyUsedPage(int pages[], int n, int refString[], int currentIndex) {
+    for (int i = n - 1; i >= 0; i--) {
+        for (int j = currentIndex - 1; j >= 0; j--) {
+            if (pages[i] == refString[j]) {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
+
+// Function to implement MRU (Most Recently Used) page replacement algorithm
+int mruPageReplacement(int refString[], int refStringLength, int n) {
+    int pages[n];
+    int pageFaults = 0;
+
+    for (int i = 0; i < n; i++) {
+        pages[i] = -1;
+    }
+
+    for (int i = 0; i < refStringLength; i++) {
+        int page = refString[i];
+        int found = 0;
+
+        for (int j = 0; j < n; j++) {
+            if (pages[j] == page) {
+                found = 1;
+                break;
+            }
+        }
+
+        if (!found) {
+            pageFaults++;
+            int pageToReplace = findMostRecentlyUsedPage(pages, n, refString, i);
+            pages[pageToReplace] = page;
+        }
+    }
+
+    return pageFaults;
+}
+
+// Function to implement Second Chance Page Replacement algorithm
+int secondChancePageReplacement(int refString[], int refStringLength, int n) {
+    int pages[n];
+    int secondChance[n];
+    int pageFaults = 0;
+
+    for (int i = 0; i < n; i++) {
+        pages[i] = -1;
+        secondChance[i] = 0;
+    }
+
+    int currentIndex = 0;
+
+    for (int i = 0; i < refStringLength; i++) {
+        int page = refString[i];
+        int found = 0;
+
+        for (int j = 0; j < n; j++) {
+            if (pages[j] == page) {
+                found = 1;
+                secondChance[j] = 1;
+                break;
+            }
+        }
+
+        if (!found) {
+            while (1) {
+                if (secondChance[currentIndex] == 0) {
+                    pageFaults++;
+                    pages[currentIndex] = page;
+                    secondChance[currentIndex] = 1;
+                    currentIndex = (currentIndex + 1) % n;
+                    break;
+                } else {
+                    secondChance[currentIndex] = 0;
+                    currentIndex = (currentIndex + 1) % n;
+                }
+            }
+        }
+    }
+
+    return pageFaults;
+}
+
+// Function to implement LFU (Least Frequently Used) page replacement algorithm
+int lfuPageReplacement(int refString[], int refStringLength, int n) {
+    int pages[n];
+    int pageFrequency[n];
+    int pageFaults = 0;
+
+    for (int i = 0; i < n; i++) {
+        pages[i] = -1;
+        pageFrequency[i] = 0;
+    }
+
+    for (int i = 0; i < refStringLength; i++) {
+        int page = refString[i];
+        int found = 0;
+
+        for (int j = 0; j < n; j++) {
+            if (pages[j] == page) {
+                found = 1;
+                pageFrequency[j]++;
+                break;
+            }
+        }
+
+        if (!found) {
+            pageFaults++;
+            int minFrequency = pageFrequency[0];
+            int lfuPage = 0;
+
+            for (int j = 1; j < n; j++) {
+                if (pageFrequency[j] < minFrequency) {
+                    minFrequency = pageFrequency[j];
+                    lfuPage = j;
+                }
+            }
+
+            pages[lfuPage] = page;
+            pageFrequency[lfuPage] = 1;
+        }
+    }
+
+    return pageFaults;
+}
+
+int main() {
+    int refString[] = {2, 5, 2, 8, 5, 4, 1, 2, 3, 2, 6, 1, 2, 5, 9, 8};
+    int refStringLength = sizeof(refString) / sizeof(refString[0]);
+    int n;
+
+    printf("Enter the number of memory frames: ");
+    scanf("%d", &n);
+
+    int mruFaults = mruPageReplacement(refString, refStringLength, n);
+    int secondChanceFaults = secondChancePageReplacement(refString, refStringLength, n);
+    int lfuFaults = lfuPageReplacement(refString, refStringLength, n);
+
+    printf("Total Page Faults (MRU): %d\n", mruFaults);
+    printf("Total Page Faults (Second Chance): %d\n", secondChanceFaults);
+    printf("Total Page Faults (LFU): %d\n", lfuFaults);
+
+    return 0;
+}
